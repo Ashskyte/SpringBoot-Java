@@ -24,6 +24,7 @@ public class HotelServiceImpl implements HotelService {
 
     @Override
     public Hotel getHotelById(String id) {
+        //todo complete the implementation
         return hotelRepository.findById(id).orElseThrow(()->new ResourceNotFoundException());
     }
 }
