@@ -19,7 +19,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User save(User user) {
         String randomUserId=UUID.randomUUID().toString();
-        User newUser=User.builder().email(user.getEmail()).userID(randomUserId).about(user.getAbout()).userName(user.getUserName()).build();
+        User newUser=User.builder().email(user.getEmail()).userID(randomUserId).about(user.getAbout()).userName(user.getUserName()).rating(user.getRating()).build();
       //  user.setUserID(randomUserId);
         return userRepository.save(newUser);
     }

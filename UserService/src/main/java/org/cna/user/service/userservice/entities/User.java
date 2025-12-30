@@ -23,6 +23,8 @@ public class User {
     private String email;
     @Column(name = "ABOUT")
     private String about;
+    @Column(name = "RATING")
+    private int rating;
     @Transient
     private List<Rating> ratings=new ArrayList<>();
 }

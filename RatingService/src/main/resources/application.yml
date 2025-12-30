@@ -1,0 +1,7 @@
+spring:
+  mongodb:
+    database: microservices
+    uri: mongodb://localhost:27017/
+
+server:
+  port: 8083
