@@ -47,7 +47,7 @@ public class UserServiceImpl implements UserService {
 
         // Fetch ratings by userId by calling RATING-SERVICE
         ResponseEntity<List<Rating>> ratingResponse = restTemplate.exchange(
-                "http://localhost:8083/ratings/users/" + userID,
+                "http://RATING-SERVICE/ratings/users/" + userID,
                 HttpMethod.GET,
                 null,
                 new ParameterizedTypeReference<List<Rating>>() {}
@@ -58,7 +58,7 @@ public class UserServiceImpl implements UserService {
         if (ratingsByUserId != null) {
             for (Rating r : ratingsByUserId) {
                 Hotel hotel = restTemplate.getForEntity(
-                        "http://localhost:8082/hotels/" + r.getHotelId(),
+                        "http://HOTEL-SERVICE/hotels/" + r.getHotelId(),
                         Hotel.class
                 ).getBody();
                 r.setHotel(hotel);
