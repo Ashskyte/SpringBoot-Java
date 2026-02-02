@@ -1,6 +1,8 @@
 package org.cna.user.service.userservice.controllers;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.cna.user.service.userservice.entities.User;
+import org.cna.user.service.userservice.exceptions.ResourceNotFoundException;
 import org.cna.user.service.userservice.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,8 +27,16 @@ public class UserController {
 
     //fetch user by id
     @GetMapping({"/{userId}"})
+    @CircuitBreaker(name = "ratingAndHotelServiceCB", fallbackMethod = "ratingAndHotelServiceFallback")
     public ResponseEntity<User> getUserById(@PathVariable("userId") String userId) {
         return ResponseEntity.ok(userService.getUserById(userId));
+    }
+
+    public ResponseEntity<User> ratingAndHotelServiceFallback(String userId, Exception e){
+        if(e instanceof ResourceNotFoundException){
+            return ResponseEntity.ok(User.builder().userID(userId).userName("Default User").about("Default User because one of the services are down").rating(0).build());
+        }
+        return ResponseEntity.ok(User.builder().userID(userId).userName("Default User").about("Default User because one of the services are down").rating(0).build());
     }
 
 
