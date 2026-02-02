@@ -1,6 +1,7 @@
 package org.cna.user.service.userservice.controllers;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import org.cna.user.service.userservice.entities.User;
 import org.cna.user.service.userservice.exceptions.ResourceNotFoundException;
 import org.cna.user.service.userservice.services.UserService;
@@ -28,6 +29,7 @@ public class UserController {
     //fetch user by id
     @GetMapping({"/{userId}"})
     @CircuitBreaker(name = "ratingAndHotelServiceCB", fallbackMethod = "ratingAndHotelServiceFallback")
+    @RateLimiter(name = "ratingAndHotelServiceRL", fallbackMethod = "ratingAndHotelServiceFallback")
     public ResponseEntity<User> getUserById(@PathVariable("userId") String userId) {
         return ResponseEntity.ok(userService.getUserById(userId));
     }
