@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Gateway SSL Certificate Issue - Resolution Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section h2 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .section h3 {
+            color: #764ba2;
+            font-size: 1.4em;
+            margin: 20px 0 10px 0;
+        }
+        
+        .error-box {
+            background: #fff5f5;
+            border-left: 5px solid #e53e3e;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .error-box h4 {
+            color: #e53e3e;
+            margin-bottom: 10px;
+        }
+        
+        .success-box {
+            background: #f0fff4;
+            border-left: 5px solid #38a169;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .success-box h4 {
+            color: #38a169;
+            margin-bottom: 10px;
+        }
+        
+        .info-box {
+            background: #ebf8ff;
+            border-left: 5px solid #3182ce;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .info-box h4 {
+            color: #3182ce;
+            margin-bottom: 10px;
+        }
+        
+        code {
+            background: #f7fafc;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #e53e3e;
+            font-size: 0.9em;
+        }
+        
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        
+        pre code {
+            background: transparent;
+            color: #e2e8f0;
+            padding: 0;
+        }
+        
+        .step-list {
+            counter-reset: step-counter;
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .step-list li {
+            counter-increment: step-counter;
+            margin: 25px 0;
+            padding-left: 60px;
+            position: relative;
+        }
+        
+        .step-list li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #e2e8f0;
+        }
+        
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+        
+        tr:nth-child(even) {
+            background: #f7fafc;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin: 5px 5px 5px 0;
+        }
+        
+        .badge-error {
+            background: #fed7d7;
+            color: #c53030;
+        }
+        
+        .badge-success {
+            background: #c6f6d5;
+            color: #2f855a;
+        }
+        
+        .badge-info {
+            background: #bee3f8;
+            color: #2c5282;
+        }
+        
+        .footer {
+            background: #2d3748;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .footer p {
+            margin: 5px 0;
+        }
+        
+        .highlight {
+            background: #fefcbf;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        
+        ul {
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+        
+        ul li {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 API Gateway SSL Certificate Issue</h1>
+            <p>Resolution Guide for Okta OAuth2 Integration in Amadeus Corporate Network</p>
+            <p style="font-size: 0.9em; margin-top: 10px;">Date: February 3, 2026</p>
+        </div>
+        
+        <div class="content">
+            <!-- Problem Overview -->
+            <div class="section">
+                <h2>📋 Problem Overview</h2>
+                <div class="error-box">
+                    <h4>❌ Application Startup Failure</h4>
+                    <p>The API Gateway microservice failed to start when attempting to integrate Okta OAuth2 authentication through the Amadeus corporate network infrastructure.</p>
+                </div>
+                
+                <table>
+                    <tr>
+                        <th>Component</th>
+                        <th>Details</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Application</strong></td>
+                        <td>API Gateway (Spring Boot 3.2.0)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Framework</strong></td>
+                        <td>Spring Cloud Gateway with OAuth2 Client</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Authentication Provider</strong></td>
+                        <td>Okta (integrator-9657543.okta.com)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Network Environment</strong></td>
+                        <td>Amadeus Corporate Network with Netskope SSL Inspection</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Java Version</strong></td>
+                        <td>OpenJDK 21.0.4 (OpenLogic)</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <!-- Error Details -->
+            <div class="section">
+                <h2>🚨 Error Details</h2>
+                
+                <h3>Primary Error Message</h3>
+                <div class="error-box">
+                    <pre><code>Caused by: javax.net.ssl.SSLHandshakeException: 
+PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: 
+unable to find valid certification path to requested target</code></pre>
+                </div>
+                
+                <h3>Full Error Stack</h3>
+                <pre><code>org.springframework.web.client.ResourceAccessException: 
+I/O error on GET request for "https://integrator-9657543.okta.com/oauth2/default/.well-known/openid-configuration": 
+PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: 
+unable to find valid certification path to requested target
+
+at org.springframework.security.oauth2.client.registration.ClientRegistrations.getBuilder
+at org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientRegistrationRepositoryConfiguration
+...
+Caused by: javax.net.ssl.SSLHandshakeException: 
+PKIX path building failed: unable to find valid certification path to requested target
+...
+Caused by: sun.security.validator.ValidatorException: 
+PKIX path building failed
+...
+Caused by: sun.security.provider.certpath.SunCertPathBuilderException: 
+unable to find valid certification path to requested target</code></pre>
+                
+                <h3>When Does This Occur?</h3>
+                <div class="info-box">
+                    <h4>ℹ️ Startup Time Failure</h4>
+                    <p>The error occurs <strong>during application startup</strong>, not at runtime. Spring Security's OAuth2 auto-configuration attempts to fetch the OpenID Connect (OIDC) discovery document from Okta's well-known endpoint to automatically configure the OAuth2 client.</p>
+                </div>
+                
+                <p>The Maven build command that triggered the error:</p>
+                <pre><code>mvn spring-boot:run
+
+[INFO] BUILD FAILURE
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:3.2.0:run
+Process terminated with exit code: 1</code></pre>
+            </div>
+            
+            <!-- Root Cause Analysis -->
+            <div class="section">
+                <h2>🔍 Root Cause Analysis</h2>
+                
+                <h3>Why This Happened</h3>
+                <div class="info-box">
+                    <h4>Corporate SSL Inspection (Man-in-the-Middle)</h4>
+                    <p>Amadeus corporate network uses <strong>Netskope SSL inspection</strong> (also known as SSL/TLS interception) for security monitoring. This acts as a proxy that:</p>
+                    <ul>
+                        <li>Intercepts all HTTPS traffic from your machine</li>
+                        <li>Decrypts the traffic using corporate certificates</li>
+                        <li>Re-encrypts it with certificates signed by Netskope's corporate CA</li>
+                        <li>Inspects the content for security threats</li>
+                    </ul>
+                </div>
+                
+                <h3>Certificate Chain Analysis</h3>
+                <p>When connecting to <code>https://integrator-9657543.okta.com</code>, the following certificate chain was presented:</p>
+                
+                <table>
+                    <tr>
+                        <th>Level</th>
+                        <th>Certificate</th>
+                        <th>Issuer</th>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-info">0 - Server</span></td>
+                        <td><code>CN=*.okta.com</code></td>
+                        <td>Amadeus/Netskope Intermediate CA</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-info">1 - Intermediate</span></td>
+                        <td><code>CN=ca.amadeus.eu.goskope.com</code><br>
+                            <code>O=Amadeus Global</code></td>
+                        <td>Netskope Root CA</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-error">2 - Root CA</span></td>
+                        <td><code>CN=caadmin.netskope.com</code><br>
+                            <code>O=netSkope Inc</code></td>
+                        <td>Self-signed</td>
+                    </tr>
+                </table>
+                
+                <div class="error-box">
+                    <h4>❌ The Problem</h4>
+                    <p>Java's default trust store (<code>cacerts</code>) does <strong>not include</strong> the Netskope root CA certificate. Therefore, when Java tries to validate the SSL certificate chain, it fails because it cannot establish trust up to a known root CA.</p>
+                </div>
+                
+                <h3>Technical Details</h3>
+                <ul>
+                    <li><strong>Original Certificate:</strong> Okta's real certificate (signed by DigiCert or similar public CA)</li>
+                    <li><strong>Replaced With:</strong> Corporate certificate signed by <code>caadmin.netskope.com</code></li>
+                    <li><strong>Java's Perspective:</strong> Unknown issuer → Certificate validation fails</li>
+                    <li><strong>Impact:</strong> Spring Boot cannot fetch OIDC configuration → Application fails to start</li>
+                </ul>
+            </div>
+            
+            <!-- Configuration Context -->
+            <div class="section">
+                <h2>⚙️ Application Configuration</h2>
+                
+                <h3>OAuth2 Configuration (application.yml)</h3>
+                <pre><code>spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          okta:
+            client-id: 0oazrwkj68aY82S2f697
+            client-secret: Ur_eb9jZszEkqfl-8Wk78Yc1F8ubkToyN3IfUzsf3TJqH0W8YaAzycVWQlJteXBs
+            scope: openid, profile, email
+        provider:
+          okta:
+            issuer-uri: https://integrator-9657543.okta.com/oauth2/default
+
+okta:
+  oauth2:
+    issuer: https://integrator-9657543.okta.com/oauth2/default
+    client-id: 0oazrwkj68aY82S2f697
+    audience: api://default</code></pre>
+                
+                <h3>Dependencies (pom.xml)</h3>
+                <pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-security&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;com.okta.spring&lt;/groupId&gt;
+    &lt;artifactId&gt;okta-spring-boot-starter&lt;/artifactId&gt;
+    &lt;version&gt;3.0.7&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+            </div>
+            
+            <!-- Solution -->
+            <div class="section">
+                <h2>✅ Solution: Import Corporate CA Certificate</h2>
+                
+                <div class="success-box">
+                    <h4>✔️ Approach Taken</h4>
+                    <p>Import the Netskope root CA certificate into Java's system-wide trust store (cacerts) so that Java can validate SSL certificates issued by the corporate proxy.</p>
+                </div>
+                
+                <h3>Step-by-Step Resolution Process</h3>
+                <ol class="step-list">
+                    <li>
+                        <strong>Identify Java Installation</strong>
+                        <p>Located the Java installation and trust store:</p>
+                        <pre><code>Java Home: C:\Program Files\OpenLogic\jdk-21.0.4.7-hotspot
+Cacerts Location: C:\Program Files\OpenLogic\jdk-21.0.4.7-hotspot\lib\security\cacerts</code></pre>
+                    </li>
+                    
+                    <li>
+                        <strong>Export Corporate CA Certificate</strong>
+                        <p>Used PowerShell to connect to Okta and extract the certificate chain:</p>
+                        <pre><code># Connect to Okta and extract certificates
+$url = "integrator-9657543.okta.com"
+$tcpClient = New-Object System.Net.Sockets.TcpClient($url, 443)
+$sslStream = New-Object System.Net.Security.SslStream($tcpClient.GetStream(), $false, 
+    ({$true} -as [System.Net.Security.RemoteCertificateValidationCallback]))
+
+try {
+    $sslStream.AuthenticateAsClient($url)
+    $chain = New-Object System.Security.Cryptography.X509Certificates.X509Chain
+    $cert2 = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($sslStream.RemoteCertificate)
+    $chain.Build($cert2) | Out-Null
+    
+    # Export root CA
+    $rootCert = $chain.ChainElements[$chain.ChainElements.Count - 1].Certificate
+    $rootCertPath = "$env:TEMP\okta-root-ca.cer"
+    [System.IO.File]::WriteAllBytes($rootCertPath, $rootCert.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Cert))
+} finally {
+    $sslStream.Close()
+    $tcpClient.Close()
+}</code></pre>
+                        <p><span class="badge badge-success">Certificate exported to:</span> <code>C:\Users\bbelwal\AppData\Local\Temp\okta-root-ca.cer</code></p>
+                    </li>
+                    
+                    <li>
+                        <strong>Identify Certificate Details</strong>
+                        <p>Retrieved information about the root CA:</p>
+                        <table>
+                            <tr>
+                                <th>Property</th>
+                                <th>Value</th>
+                            </tr>
+                            <tr>
+                                <td>Subject</td>
+                                <td><code>CN=caadmin.netskope.com, O=netSkope Inc, L=London, S=London, C=GB</code></td>
+                            </tr>
+                            <tr>
+                                <td>Issuer</td>
+                                <td>Self-signed (same as Subject)</td>
+                            </tr>
+                            <tr>
+                                <td>Valid From</td>
+                                <td>January 4, 2026</td>
+                            </tr>
+                            <tr>
+                                <td>Valid To</td>
+                                <td>February 3, 2027</td>
+                            </tr>
+                            <tr>
+                                <td>Thumbprint</td>
+                                <td><code>15818AF1F3AA1CCCDDA734DCD3D7DB8E085DA536</code></td>
+                            </tr>
+                        </table>
+                    </li>
+                    
+                    <li>
+                        <strong>Import Certificate into Java Trust Store</strong>
+                        <p><span class="highlight">⚠️ Administrator privileges required</span></p>
+                        <p>Opened PowerShell as Administrator and ran:</p>
+                        <pre><code>& "C:\Program Files\OpenLogic\jdk-21.0.4.7-hotspot\bin\keytool.exe" `
+    -import `
+    -trustcacerts `
+    -alias netskope-root-ca `
+    -file "$env:TEMP\okta-root-ca.cer" `
+    -keystore "C:\Program Files\OpenLogic\jdk-21.0.4.7-hotspot\lib\security\cacerts" `
+    -storepass changeit `
+    -noprompt</code></pre>
+                        <p><span class="badge badge-success">Result:</span> Certificate successfully imported with alias <code>netskope-root-ca</code></p>
+                    </li>
+                    
+                    <li>
+                        <strong>Verify Certificate Import</strong>
+                        <p>Confirmed the certificate was added to the trust store:</p>
+                        <pre><code>& "C:\Program Files\OpenLogic\jdk-21.0.4.7-hotspot\bin\keytool.exe" `
+    -list `
+    -alias netskope-root-ca `
+    -keystore "C:\Program Files\OpenLogic\jdk-21.0.4.7-hotspot\lib\security\cacerts" `
+    -storepass changeit
+
+Output:
+netskope-root-ca, Feb 3, 2026, trustedCertEntry, 
+Certificate fingerprint (SHA-256): 20:24:A2:B1:8D:68:FC:53:C0:26:5B:14:71:85:4D:17:...</code></pre>
+                    </li>
+                    
+                    <li>
+                        <strong>Test Application Startup</strong>
+                        <p>Started the API Gateway application:</p>
+                        <pre><code>mvn spring-boot:run</code></pre>
+                        <div class="success-box">
+                            <h4>🎉 Success!</h4>
+                            <p>The application started successfully without SSL certificate errors. Spring Security was able to fetch the OIDC configuration from Okta and initialize the OAuth2 client.</p>
+                        </div>
+                    </li>
+                </ol>
+            </div>
+            
+            <!-- Verification -->
+            <div class="section">
+                <h2>✔️ Verification & Testing</h2>
+                
+                <h3>Application Status</h3>
+                <div class="success-box">
+                    <p><strong>✅ API Gateway is running successfully on port 8084</strong></p>
+                    <p><strong>✅ OAuth2 client configured with Okta</strong></p>
+                    <p><strong>✅ OIDC discovery endpoint accessible</strong></p>
+                    <p><strong>✅ SSL certificate validation passing</strong></p>
+                </div>
+                
+                <h3>What Was Fixed</h3>
+                <table>
+                    <tr>
+                        <th>Component</th>
+                        <th>Before</th>
+                        <th>After</th>
+                    </tr>
+                    <tr>
+                        <td>SSL Validation</td>
+                        <td><span class="badge badge-error">Failed</span></td>
+                        <td><span class="badge badge-success">Passed</span></td>
+                    </tr>
+                    <tr>
+                        <td>OIDC Discovery</td>
+                        <td><span class="badge badge-error">Connection Error</span></td>
+                        <td><span class="badge badge-success">Successful</span></td>
+                    </tr>
+                    <tr>
+                        <td>Application Startup</td>
+                        <td><span class="badge badge-error">Failed</span></td>
+                        <td><span class="badge badge-success">Running</span></td>
+                    </tr>
+                    <tr>
+                        <td>OAuth2 Configuration</td>
+                        <td><span class="badge badge-error">Not Initialized</span></td>
+                        <td><span class="badge badge-success">Configured</span></td>
+                    </tr>
+                </table>
+            </div>
+            
+            <!-- Important Notes -->
+            <div class="section">
+                <h2>📝 Important Notes & Best Practices</h2>
+                
+                <div class="info-box">
+                    <h4>🔐 Security Considerations</h4>
+                    <ul>
+                        <li><strong>System-wide Impact:</strong> This certificate is now trusted by ALL Java applications on this machine</li>
+                        <li><strong>Certificate Expiry:</strong> The certificate is valid until February 3, 2027. You'll need to update it before expiration</li>
+                        <li><strong>Corporate Environment:</strong> This solution is appropriate for corporate networks with authorized SSL inspection</li>
+                        <li><strong>Production Deployment:</strong> Ensure all production servers have this certificate installed</li>
+                    </ul>
+                </div>
+                
+                <h3>Alternative Solutions (Not Implemented)</h3>
+                <ul>
+                    <li><strong>Application-Specific Trust Store:</strong> Create a custom trust store for just this application (useful if you don't have admin rights)</li>
+                    <li><strong>Disable SSL Verification:</strong> ⚠️ Not recommended - creates severe security vulnerabilities</li>
+                    <li><strong>Manual OAuth2 Configuration:</strong> Skip OIDC discovery and manually configure endpoints</li>
+                    <li><strong>System-wide Proxy Settings:</strong> Configure Java to use corporate proxy settings</li>
+                </ul>
+                
+                <h3>Future Maintenance</h3>
+                <div class="info-box">
+                    <h4>📅 Certificate Renewal Checklist</h4>
+                    <ol>
+                        <li>Monitor certificate expiry date (February 3, 2027)</li>
+                        <li>If Netskope updates their root CA, repeat the import process</li>
+                        <li>Use <code>keytool -list</code> to verify certificate presence after Java updates</li>
+                        <li>Document this process for team members and CI/CD pipelines</li>
+                    </ol>
+                </div>
+                
+                <h3>Troubleshooting Tips</h3>
+                <table>
+                    <tr>
+                        <th>Issue</th>
+                        <th>Solution</th>
+                    </tr>
+                    <tr>
+                        <td>Certificate import fails</td>
+                        <td>Ensure you're running PowerShell/Command Prompt as Administrator</td>
+                    </tr>
+                    <tr>
+                        <td>Still getting SSL errors</td>
+                        <td>Verify certificate was imported with <code>keytool -list -alias netskope-root-ca</code></td>
+                    </tr>
+                    <tr>
+                        <td>Works on one machine but not another</td>
+                        <td>Each machine needs the certificate imported into its local Java installation</td>
+                    </tr>
+                    <tr>
+                        <td>Error after Java upgrade</td>
+                        <td>New Java installations have separate cacerts files - re-import the certificate</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <!-- Technical Details -->
+            <div class="section">
+                <h2>🔧 Technical Details</h2>
+                
+                <h3>Key Files Modified</h3>
+                <table>
+                    <tr>
+                        <th>File</th>
+                        <th>Location</th>
+                        <th>Change</th>
+                    </tr>
+                    <tr>
+                        <td><code>cacerts</code></td>
+                        <td><code>C:\Program Files\OpenLogic\jdk-21.0.4.7-hotspot\lib\security\</code></td>
+                        <td>Added Netskope root CA certificate</td>
+                    </tr>
+                </table>
+                
+                <h3>No Code Changes Required</h3>
+                <p>✅ No modifications were needed to:</p>
+                <ul>
+                    <li><code>application.yml</code> - OAuth2 configuration unchanged</li>
+                    <li><code>SecurityConfig.java</code> - Security configuration unchanged</li>
+                    <li><code>pom.xml</code> - Dependencies unchanged</li>
+                </ul>
+                
+                <h3>Commands Reference</h3>
+                <pre><code># List all certificates in trust store
+keytool -list -keystore cacerts -storepass changeit
+
+# View specific certificate
+keytool -list -alias netskope-root-ca -keystore cacerts -storepass changeit -v
+
+# Remove certificate (if needed)
+keytool -delete -alias netskope-root-ca -keystore cacerts -storepass changeit
+
+# Export certificate from trust store
+keytool -exportcert -alias netskope-root-ca -file exported.cer -keystore cacerts -storepass changeit</code></pre>
+            </div>
+            
+            <!-- Summary -->
+            <div class="section">
+                <h2>📊 Summary</h2>
+                
+                <div class="success-box">
+                    <h4>✅ Resolution Complete</h4>
+                    <p><strong>Problem:</strong> API Gateway failed to start due to SSL certificate validation failure when connecting to Okta through Amadeus corporate network with Netskope SSL inspection.</p>
+                    <br>
+                    <p><strong>Root Cause:</strong> Java trust store did not contain the Netskope corporate root CA certificate required to validate intercepted SSL certificates.</p>
+                    <br>
+                    <p><strong>Solution:</strong> Exported and imported the Netskope root CA certificate into Java's system trust store using keytool.</p>
+                    <br>
+                    <p><strong>Result:</strong> API Gateway now starts successfully, OAuth2 client properly configured, and Okta authentication integration working as expected.</p>
+                </div>
+                
+                <h3>Key Takeaways</h3>
+                <ul>
+                    <li>✅ Corporate SSL inspection requires importing CA certificates into Java trust store</li>
+                    <li>✅ Certificate chain validation is essential for HTTPS connections</li>
+                    <li>✅ Spring Boot OAuth2 auto-configuration requires startup connectivity to identity providers</li>
+                    <li>✅ System-wide certificate trust affects all Java applications on the machine</li>
+                    <li>✅ Administrator privileges are required to modify Java's cacerts file</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><strong>API Gateway - Microservices Architecture</strong></p>
+            <p>Amadeus Corporate Network Environment</p>
+            <p style="margin-top: 15px; opacity: 0.8;">Documentation Generated: February 3, 2026 | Issue Resolution Time: ~30 minutes</p>
+            <p style="margin-top: 10px; opacity: 0.7;">Spring Boot 3.2.0 | Java 21 | Okta OAuth2 | Netskope SSL Inspection</p>
+        </div>
+    </div>
+</body>
+</html>

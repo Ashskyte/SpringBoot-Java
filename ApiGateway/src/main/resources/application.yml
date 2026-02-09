@@ -18,6 +18,17 @@ spring:
               uri: lb://HOTEL-SERVICE
               predicates:
                 - Path=/hotels/**
+  security:
+    oauth2:
+      client:
+        registration:
+          okta:
+            client-id: 0oazrwkj68aY82S2f697
+            client-secret: Ur_eb9jZszEkqfl-8Wk78Yc1F8ubkToyN3IfUzsf3TJqH0W8YaAzycVWQlJteXBs
+            scope: openid, profile, email,offline_access,openid
+        provider:
+          okta:
+            issuer-uri: https://integrator-9657543.okta.com/oauth2/default
 
 server:
   port: 8084
@@ -32,3 +43,17 @@ eureka:
       defaultZone: http://localhost:8761/eureka/
     fetch-registry: true
     register-with-eureka: true
+
+okta:
+  oauth2:
+    issuer: https://integrator-9657543.okta.com/oauth2/default
+    client-id: 0oazrwkj68aY82S2f697
+    client-secret: Ur_eb9jZszEkqfl-8Wk78Yc1F8ubkToyN3IfUzsf3TJqH0W8YaAzycVWQlJteXBs
+    audience: api://default
+    scopes:
+      - email
+      - profile
+      - phone
+      - address
+      - offline_access
+      - openid
